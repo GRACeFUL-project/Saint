@@ -1,0 +1,5 @@
+ELam.  Expr  ::= "\\" Ident "." Expr;
+EApp.  Expr1 ::= Expr1 Expr2;
+EVar.  Expr2 ::= Ident;
+EILit. Expr2 ::= Integer;
+coercions Expr 2;

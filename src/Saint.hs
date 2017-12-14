@@ -1,3 +1,4 @@
-module Saint (module Saint.Types) where
+module Saint ( module Saint.Types
+             ) where
 
 import Saint.Types
