@@ -1,40 +1,28 @@
-{-# LANGUAGE GADTs, TypeOperators #-}
+{-# LANGUAGE GADTs, TypeOperators, UndecidableInstances, FlexibleContexts #-}
 module Saint.TypedValues where
 
 import Data.Either
 
 import Saint.Types
 
-data TypedValue where
-  (:::) :: a -> Type a -> TypedValue
+data TypedValue f0 f1 where
+  (:::) :: a -> Type f0 f1 a -> TypedValue f0 f1
 
 infixr 8 :::
 
-instance Show TypedValue where
-  show (a ::: t) = "<<" ++ show t ++ ">>"
-
-data Type a where
-  Unit       :: Type ()
-  Int        :: Type Int
-  Bool       :: Type Bool
-  List       :: Type a -> Type [a]
-  (:->)      :: Type a -> Type b -> Type (a -> b)
+data Type f0 f1 a where
+  Base   :: f0 a -> Type f0 f1 a
+  Arity1 :: f1 (Type f0 f1) a -> Type f0 f1 a
+  (:->)  :: Type f0 f1 a -> Type f0 f1 b -> Type f0 f1 (a -> b)
 
 infixr 9 :->
 
--- TODO: Precedence
-instance Show (Type a) where
-  show Unit      = "()"
-  show Int       = "Int"
-  show Bool      = "Bool"
-  show (List a)  = "[" ++ show a ++ "]"
-  show (a :-> b) = "(" ++ show a ++ ") -> (" ++ show b ++ ")"
-
-instance TypeEquality Type where
+instance (TypeEquality f0, TypeEquality (f1 (Type f0 f1))) => TypeEquality (Type f0 f1) where
   a ?= b = case (a, b) of
-    (Int,        Int)     -> return Refl
-    (Bool,       Bool)    -> return Refl
-    (List a,   List b)    -> do
+    (Base a, Base b) -> do
+      Refl <- a ?= b
+      return Refl
+    (Arity1 a, Arity1 b) -> do
       Refl <- a ?= b
       return Refl
     (a :-> b,    x :-> y) -> do
@@ -43,22 +31,22 @@ instance TypeEquality Type where
       return Refl
     (_,          _)       -> fail "Type error"
 
-instance HasFunctions Type where
+instance HasFunctions (Type f0 f1) where
   (-->) = (:->)
 
-instance IsType Type where
+instance IsType (Type f0 f1) where
   toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
   toSomeType a         = SomeBase a
 
-instance HasIntegers Type where
-  int = Int
+instance (HasIntegers f0) => HasIntegers (Type f0 f1) where
+  int = Base int
 
-unpackAs :: Type a -> TypedValue -> Either String a
+unpackAs :: TypeEquality (Type f0 f1) => Type f0 f1 a -> TypedValue f0 f1 -> Either String a
 unpackAs t' (a ::: t) = do
   Refl <- t ?= t'
   return a
 
-coerce :: Type a -> TypedValue -> a
+coerce :: TypeEquality (Type f0 f1) => Type f0 f1 a -> TypedValue f0 f1 -> a
 coerce t a = case unpackAs t a of
   Left e  -> error e
   Right v -> v
