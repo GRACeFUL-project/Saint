@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds #-}
+{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds, UndecidableInstances, FlexibleContexts #-}
 module Saint.Types where
 
 import Data.Either
@@ -38,3 +38,37 @@ normST (SomeFun a b) = do
   return $ SomeBase (a' --> b')
 normST (SomeVar v) = fail "Type variable!"
 normST t = return t
+
+data Type f0 f1 a where
+  Base   :: f0 a -> Type f0 f1 a
+  Arity1 :: f1 (Type f0 f1) a -> Type f0 f1 a
+  (:->)  :: Type f0 f1 a -> Type f0 f1 b -> Type f0 f1 (a -> b)
+
+infixr 9 :->
+
+instance (TypeEquality f0, TypeEquality (f1 (Type f0 f1))) => TypeEquality (Type f0 f1) where
+  a ?= b = case (a, b) of
+    (Base a, Base b) -> do
+      Refl <- a ?= b
+      return Refl
+
+    (Arity1 a, Arity1 b) -> do
+      Refl <- a ?= b
+      return Refl
+
+    (a :-> b,    x :-> y) -> do
+      Refl <- a ?= x
+      Refl <- b ?= y
+      return Refl
+
+    (_,          _)       -> fail "Type error"
+
+instance HasFunctions (Type f0 f1) where
+  (-->) = (:->)
+
+instance IsType (Type f0 f1) where
+  toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
+  toSomeType a         = SomeBase a
+
+instance (HasIntegers f0) => HasIntegers (Type f0 f1) where
+  int = Base int
