@@ -39,20 +39,15 @@ normST (SomeFun a b) = do
 normST (SomeVar v) = fail "Type variable!"
 normST t = return t
 
-data Type f0 f1 a where
-  Base   :: f0 a -> Type f0 f1 a
-  Arity1 :: f1 (Type f0 f1) a -> Type f0 f1 a
-  (:->)  :: Type f0 f1 a -> Type f0 f1 b -> Type f0 f1 (a -> b)
+data Type t a where
+  Base   :: t (Type t) a -> Type t a
+  (:->)  :: Type t a -> Type t b -> Type t (a -> b)
 
 infixr 9 :->
 
-instance (TypeEquality f0, TypeEquality (f1 (Type f0 f1))) => TypeEquality (Type f0 f1) where
+instance TypeEquality (t (Type t)) => TypeEquality (Type t) where
   a ?= b = case (a, b) of
     (Base a, Base b) -> do
-      Refl <- a ?= b
-      return Refl
-
-    (Arity1 a, Arity1 b) -> do
       Refl <- a ?= b
       return Refl
 
@@ -63,12 +58,12 @@ instance (TypeEquality f0, TypeEquality (f1 (Type f0 f1))) => TypeEquality (Type
 
     (_,          _)       -> fail "Type error"
 
-instance HasFunctions (Type f0 f1) where
+instance HasFunctions (Type t) where
   (-->) = (:->)
 
-instance IsType (Type f0 f1) where
+instance IsType (Type t) where
   toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
   toSomeType a         = SomeBase a
 
-instance (HasIntegers f0) => HasIntegers (Type f0 f1) where
+instance HasIntegers (t (Type t)) => HasIntegers (Type t) where
   int = Base int

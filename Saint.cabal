@@ -23,6 +23,7 @@ library
                        Saint.TypedValues,
                        Saint.Interpreter,
                        Saint.Library,
+                       Saint.TypeBuildingBlocks,
                        Lambda.Abs,
                        Lambda.ErrM,
                        Lambda.Lex,

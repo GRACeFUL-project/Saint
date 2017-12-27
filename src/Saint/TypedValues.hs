@@ -5,17 +5,17 @@ import Data.Either
 
 import Saint.Types
 
-data TypedValue f0 f1 where
-  (:::) :: a -> Type f0 f1 a -> TypedValue f0 f1
+data TypedValue t where
+  (:::) :: a -> Type t a -> TypedValue t
 
 infixr 8 :::
 
-unpackAs :: TypeEquality (Type f0 f1) => Type f0 f1 a -> TypedValue f0 f1 -> Either String a
+unpackAs :: TypeEquality (Type t) => Type t a -> TypedValue t -> Either String a
 unpackAs t' (a ::: t) = do
   Refl <- t ?= t'
   return a
 
-coerce :: TypeEquality (Type f0 f1) => Type f0 f1 a -> TypedValue f0 f1 -> a
+coerce :: TypeEquality (Type t) => Type t a -> TypedValue t -> a
 coerce t a = case unpackAs t a of
   Left e  -> error e
   Right v -> v
