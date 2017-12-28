@@ -24,6 +24,7 @@ library
                        Saint.Interpreter,
                        Saint.Library,
                        Saint.TypeBuildingBlocks,
+                       Saint.CoProducts,
                        Lambda.Abs,
                        Lambda.ErrM,
                        Lambda.Lex,
