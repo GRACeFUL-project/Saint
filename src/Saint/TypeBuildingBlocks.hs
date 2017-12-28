@@ -27,6 +27,12 @@ instance TypeEquality tu => TypeEquality (A1 f tu) where
     Refl <- a ?= b
     return Refl
 
+bool :: A0 Bool :< t => Type t Bool
+bool = Base (inject A0)
+
+double :: A0 Double :< t => Type t Double
+double = Base (inject A0)
+
 maybe :: A1 Maybe :< t => Type t a -> Type t (Maybe a)
 maybe = Base . inject . A1
 

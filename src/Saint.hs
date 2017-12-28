@@ -3,6 +3,8 @@ module Saint ( module Saint.Types
              , module Saint.TypeChecker
              , module Saint.TypedValues
              , module Saint.Interpreter
+             , module Saint.TypeBuildingBlocks
+             , module Saint.CoProducts
              ) where
 
 import Saint.Types
@@ -11,3 +13,5 @@ import Saint.TypeChecker
 import Saint.TypedValues
 import Saint.Interpreter
 import Saint.Library
+import Saint.TypeBuildingBlocks
+import Saint.CoProducts

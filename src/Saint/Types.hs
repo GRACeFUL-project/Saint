@@ -8,6 +8,9 @@ import Saint.CoProducts
 data a :~: b where
   Refl :: a :~: a
 
+instance Show (a :~: b) where
+  show Refl = "Refl"
+
 class IsType ty where
   toSomeType :: ty a -> SomeType ty
 
@@ -74,3 +77,4 @@ instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g
   InR f ?= InR g = do
     Refl <- f ?= g
     return Refl
+  _ ?= _         = fail "Type error"
