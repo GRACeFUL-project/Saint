@@ -1,21 +1,34 @@
-{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds, UndecidableInstances, FlexibleContexts #-}
+{-# LANGUAGE GADTs
+           , TypeOperators
+           , FlexibleContexts
+           , KindSignatures
+           , IncoherentInstances
+           , UndecidableInstances
+#-}
 module Saint.TypeBuildingBlocks where
 
 import Saint.Types
+import Saint.CoProducts
 
-data IntT tu a where
-  Int :: IntT tu Int
+data A0 t (tu :: * -> *) a where
+  A0 :: A0 t tu t
 
-instance HasIntegers (IntT tu) where
-  int = Int
+instance TypeEquality (A0 t tu) where
+  A0 ?= A0 = return Refl 
 
-instance TypeEquality (IntT tu) where
-  Int ?= Int = return Refl 
+instance (A0 Int) :< t => HasInts (Type t) where
+  int = Base (inject A0)
 
-data MaybeT tu a where
-  Maybe :: tu a -> MaybeT tu (Maybe a)
+data A1 f tu a where
+  A1 :: tu a -> A1 f tu (f a)
 
-instance TypeEquality tu => TypeEquality (MaybeT tu) where
-  Maybe a ?= Maybe b = do
+instance TypeEquality tu => TypeEquality (A1 f tu) where
+  A1 a ?= A1 b = do
     Refl <- a ?= b
     return Refl
+
+maybe :: A1 Maybe :< t => Type t a -> Type t (Maybe a)
+maybe = Base . inject . A1
+
+list :: A1 [] :< t => Type t a -> Type t [a]
+list = Base . inject . A1

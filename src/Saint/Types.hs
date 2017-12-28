@@ -1,7 +1,9 @@
-{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds, UndecidableInstances, FlexibleContexts #-}
+{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds, UndecidableInstances, FlexibleContexts, KindSignatures #-}
 module Saint.Types where
 
 import Data.Either
+
+import Saint.CoProducts
 
 data a :~: b where
   Refl :: a :~: a
@@ -15,10 +17,10 @@ class TypeEquality ty where
 class HasFunctions ty where
   (-->) :: ty a -> ty b -> ty (a -> b)
 
-class HasIntegers ty where
+class HasInts ty where
   int :: ty Int
 
-type FullType ty = (IsType ty, TypeEquality ty, HasFunctions ty, HasIntegers ty)
+type FullType ty = (IsType ty, TypeEquality ty, HasFunctions ty, HasInts ty)
 
 data SomeType ty where
   SomeBase :: ty a        -> SomeType ty
@@ -65,5 +67,10 @@ instance IsType (Type t) where
   toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
   toSomeType a         = SomeBase a
 
-instance HasIntegers (t (Type t)) => HasIntegers (Type t) where
-  int = Base int
+instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
+  InL f ?= InL g = do
+    Refl <- f ?= g
+    return Refl
+  InR f ?= InR g = do
+    Refl <- f ?= g
+    return Refl
