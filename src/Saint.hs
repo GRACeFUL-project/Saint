@@ -5,6 +5,7 @@ module Saint ( module Saint.Types
              , module Saint.Interpreter
              , module Saint.TypeBuildingBlocks
              , module Saint.CoProducts
+             , module Saint.Library
              ) where
 
 import Saint.Types
@@ -15,3 +16,4 @@ import Saint.Interpreter
 import Saint.Library
 import Saint.TypeBuildingBlocks
 import Saint.CoProducts
+import Saint.Library

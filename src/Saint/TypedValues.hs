@@ -8,7 +8,7 @@ import Saint.Types
 data TypedValue t where
   (:::) :: a -> Type t a -> TypedValue t
 
-infixr 8 :::
+infixr 0 :::
 
 unpackAs :: TypeEquality (Type t) => Type t a -> TypedValue t -> Either String a
 unpackAs t' (a ::: t) = do

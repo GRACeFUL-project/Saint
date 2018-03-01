@@ -20,6 +20,8 @@ class TypeEquality ty where
 class HasFunctions ty where
   (-->) :: ty a -> ty b -> ty (a -> b)
 
+infixr 1 -->
+
 class HasInts ty where
   int :: ty Int
 
