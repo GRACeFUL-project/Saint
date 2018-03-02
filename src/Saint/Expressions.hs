@@ -34,9 +34,9 @@ data SomeTypedExpr ty where
 
 data Expr ty where
   Var  :: String  -> Expr ty
+  Lam  :: String  -> ty a    -> Expr ty -> ty b -> Expr ty
   ILit :: Int     -> Expr ty
   App  :: Expr ty -> Expr ty -> Expr ty
-  Lam  :: String  -> ty a    -> Expr ty -> ty b -> Expr ty
 
 someTypedToTyped :: FullType ty => SomeTypedExpr ty -> Either String (Expr ty)
 someTypedToTyped s = case s of

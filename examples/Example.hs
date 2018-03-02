@@ -9,11 +9,11 @@ import Saint
 ifE :: Bool -> Int -> Int -> Int 
 ifE b x y = if b then x else y
 
-lib :: (A0 Bool :< t, FullType (Type t)) => Library t
+type Univ0 = A0 Bool :+: A0 Int
+
+lib :: Library Univ0
 lib = Library "If else"
         [ Item "ifE"   ( ifE   ::: bool --> int --> int --> int)
-        , Item "zero"  ( 0     ::: int)
-        , Item "one"   ( 1     ::: int)
         , Item "True"  ( True  ::: bool)
         , Item "False" ( False ::: bool)
         ]
@@ -29,7 +29,7 @@ listFunctions = Library "List functions"
                   ]
 
 e1 :: Either String Int
-e1 = run @(A0 Int :+: A0 Bool) int lib "(\\x . ifE x one zero) True"
+e1 = run int lib "(\\x . ifE x 1 0) True"
 
 e2 :: Either String [Int]
 e2 = run @(A0 Int :+: A0 Bool :+: A1 []) (list int) listFunctions "map (\\x. suc x) (range zero ten)"
