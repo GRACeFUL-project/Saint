@@ -48,6 +48,7 @@ normST t = return t
 
 data Type t a where
   Base   :: t (Type t) a -> Type t a
+  Tag    :: String -> Type t a -> Type t a
   (:->)  :: Type t a -> Type t b -> Type t (a -> b)
 
 infixr 9 :->
@@ -58,7 +59,10 @@ instance TypeEquality (t (Type t)) => TypeEquality (Type t) where
       Refl <- a ?= b
       return Refl
 
-    (a :-> b,    x :-> y) -> do
+    (Tag s a, _) -> a ?= b
+    (_, Tag s b) -> a ?= b
+
+    (a :-> b, x :-> y) -> do
       Refl <- a ?= x
       Refl <- b ?= y
       return Refl

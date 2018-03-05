@@ -20,13 +20,13 @@ lib = Library "If else"
 
 listFunctions :: (A1 [] :< t, A0 Bool :< t, FullType (Type t)) => Library t
 listFunctions = Library "List functions"
-                  [ Item "range"   ((\a b -> [a .. b]) ::: int --> int --> list int)
-                  , Item "map"     (map                ::: (int --> int) --> list int --> list int)
-                  , Item "reverse" (reverse            ::: list int --> list int) 
-                  , Item "zero"    (0                  ::: int)
-                  , Item "ten"     (10                 ::: int)
-                  , Item "suc"     ((+1)               ::: int --> int)
-                  ]
+  [ Item "range"   ((\a b -> [a .. b]) ::: int --> int --> list int)
+  , Item "map"     (map                ::: (int --> int) --> list int --> list int)
+  , Item "reverse" (reverse            ::: list int --> list int) 
+  , Item "zero"    (0                  ::: Tag "nul" int)
+  , Item "ten"     (10                 ::: int)
+  , Item "suc"     ((+1)               ::: int --> int)
+  ]
 
 e1 :: Either String Int
 e1 = run int lib "(\\x . ifE x 1 0) True"
