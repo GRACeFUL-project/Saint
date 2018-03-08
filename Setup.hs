@@ -1,2 +1,5 @@
 import Distribution.Simple
-main = defaultMain
+
+main = do
+  runCommand "make"
+  defaultMain
