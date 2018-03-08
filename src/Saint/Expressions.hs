@@ -14,10 +14,11 @@ parse s = case pExpr (myLexer s) of
   Bad e -> fail e
   where
     go e = case e of
-      L.EVar (L.Ident v)   -> UVar v
-      L.ELam (L.Ident v) e -> ULam v (go e)
-      L.EILit i            -> UILit (fromInteger i)
-      L.EApp f x           -> UApp (go f) (go x)
+      L.EVar (L.Ident v)      -> UVar v
+      L.ELam (L.Ident v) e    -> ULam v (go e)
+      L.ELet (L.Ident v) e e' -> UApp (ULam v (go e')) (go e)
+      L.EILit i               -> UILit (fromInteger i)
+      L.EApp f x              -> UApp (go f) (go x)
 
 data UntypedExpr where
   UVar  :: String -> UntypedExpr
