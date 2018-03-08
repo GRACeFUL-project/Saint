@@ -35,8 +35,7 @@ e2 :: Either String [Int]
 e2 = run (list int) listFunctions "map (\\x. suc x) (range 1 5)"
 
 e3 :: Either String [Int]
-e3 = run (list int) listFunctions
-  "let lst = range 10 (suc 11) in map (\\x. suc (suc x)) lst"
+e3 = run (list int) listFunctions "let lst = range 10 (suc 11) in map (\\x. suc (suc x)) lst"
 
 e4 :: Either String [Int]
 e4 = run (list int) listFunctions "map (\\x. x) (range 0 10)"
