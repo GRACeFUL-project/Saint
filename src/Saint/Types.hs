@@ -43,7 +43,7 @@ normST (SomeFun a b) = do
   SomeBase a' <- normST a
   SomeBase b' <- normST b
   return $ SomeBase (a' --> b')
-normST (SomeVar v) = fail "Type variable!"
+normST (SomeVar v) = Left "The impossible happened"
 normST t = return t
 
 data Type t a where
@@ -67,7 +67,7 @@ instance TypeEquality (t (Type t)) => TypeEquality (Type t) where
       Refl <- b ?= y
       return Refl
 
-    (_,          _)       -> fail "Type error"
+    (_,          _)       -> Left "Type error"
 
 instance HasFunctions (Type t) where
   (-->) = (:->)
@@ -77,10 +77,10 @@ instance IsType (Type t) where
   toSomeType a         = SomeBase a
 
 instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
-  InL f ?= InL g = do
-    Refl <- f ?= g
+  InL f ?= InL f' = do
+    Refl <- f ?= f'
     return Refl
-  InR f ?= InR g = do
-    Refl <- f ?= g
+  InR g ?= InR g' = do
+    Refl <- g ?= g'
     return Refl
-  _ ?= _         = fail "Type error"
+  _ ?= _         = Left "Type error"

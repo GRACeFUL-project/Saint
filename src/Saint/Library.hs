@@ -25,7 +25,7 @@ interpretIn lib ue = do
   let (eith, _) = runTI $ typeInference (makeTypingEnv lib) ue
   ste <- eith
   e   <- someTypedToTyped (snd ste)
-  maybe (fail "Interpreter error") return $ interpret (makeEnv lib) e
+  interpret (makeEnv lib) e
 
 run :: FullType (Type t) => Type t a -> Library t -> String -> Either String a
 run t lib s = do

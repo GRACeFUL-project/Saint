@@ -11,7 +11,7 @@ import Saint.Types
 parse :: String -> Either String UntypedExpr
 parse s = case pExpr (myLexer s) of
   Ok e  -> return $ go e
-  Bad e -> fail e
+  Bad e -> Left e
   where
     go e = case e of
       L.EVar (L.Ident v)      -> UVar v

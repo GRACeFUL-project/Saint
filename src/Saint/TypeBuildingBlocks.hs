@@ -4,8 +4,11 @@
            , KindSignatures
            , IncoherentInstances
            , UndecidableInstances
+           , RankNTypes
 #-}
 module Saint.TypeBuildingBlocks where
+
+import Prelude hiding (maybe)
 
 import Saint.Types
 import Saint.CoProducts

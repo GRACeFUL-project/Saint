@@ -89,7 +89,7 @@ mgu t1 t2
   | t1 == t2  = return Map.empty
   | otherwise = throwError $ "types do not unify"
 
-varBind :: FullType ty => Int -> (SomeType ty) -> TI ty (Subst ty)
+varBind :: FullType ty => Int -> SomeType ty -> TI ty (Subst ty)
 varBind u t | t == SomeVar u        = return nullSubst
             | u `Set.member` ftv t  = throwError $ "occurs check fails"
             | otherwise             = return (Map.singleton u t)
