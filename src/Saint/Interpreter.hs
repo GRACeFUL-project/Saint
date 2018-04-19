@@ -18,7 +18,7 @@ extend e s tv s'
   | s' == s   = Just tv
   | otherwise = e s'
 
-interpret :: FullType (Type t) => Env t -> Expr (Type t) -> Either String (TypedValue t)
+interpret :: FullType (AnnTypeRep t) => Env t -> Expr (AnnTypeRep t) -> Either String (TypedValue t)
 interpret env e = case e of
   Var v     -> maybe (Left $ "The impossible happened, unbound variable during evaluation: " ++ show v) return $ env v
   Lam s t e t' -> return $ (\x -> coerce t' $ either (error "The impossible happened") id $ interpret (extend env s (x ::: t)) e) ::: t --> t'
@@ -28,8 +28,8 @@ interpret env e = case e of
     a' <- interpret env a
     app f' a'
 
-app :: FullType (Type t) => TypedValue t -> TypedValue t -> Either String (TypedValue t)
+app :: FullType (AnnTypeRep t) => TypedValue t -> TypedValue t -> Either String (TypedValue t)
 app (f ::: a :-> b) (x ::: a') = do
-  Refl <- a ?= a' 
+  Refl <- a ?= a'
   return $ f x ::: b
 app _ _ = Left "Trying to apply a function"

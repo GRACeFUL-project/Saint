@@ -1,5 +1,5 @@
-Old: Type t a          SomeType
-New: AnnTypeRep t a    SType
+Done: Type t a :=  AnnTypeRep t a
+TODO: SomeType :=  SType
 
 
 -- Codes for types, based on another type of codes for base types
@@ -9,10 +9,10 @@ data SType ty where
   SVar  :: Int         -> SType ty
   SFun  :: SType ty -> SType ty -> SType ty
 
-data Type t a where
-  Base   :: t (Type t) a -> Type t a
-  Tag    :: String -> Type t a -> Type t a
-  (:->)  :: Type t a -> Type t b -> Type t (a -> b)
+data AnnTypeRep t a where
+  Base   :: t (AnnTypeRep t) a -> AnnTypeRep t a
+  Tag    :: String -> AnnTypeRep t a -> AnnTypeRep t a
+  (:->)  :: AnnTypeRep t a -> AnnTypeRep t b -> AnnTypeRep t (a -> b)
 
 
 data Expr ty where

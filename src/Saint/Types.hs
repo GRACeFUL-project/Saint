@@ -46,14 +46,14 @@ normST (SFun a b) = do
 normST (STVar v) = Left "The impossible happened"
 normST t = return t
 
-data Type t a where
-  Base   :: t (Type t) a -> Type t a
-  Tag    :: String -> Type t a -> Type t a
-  (:->)  :: Type t a -> Type t b -> Type t (a -> b)
+data AnnTypeRep t a where
+  Base   :: t (AnnTypeRep t) a -> AnnTypeRep t a
+  Tag    :: String -> AnnTypeRep t a -> AnnTypeRep t a
+  (:->)  :: AnnTypeRep t a -> AnnTypeRep t b -> AnnTypeRep t (a -> b)
 
 infixr 9 :->
 
-instance TypeEquality (t (Type t)) => TypeEquality (Type t) where
+instance TypeEquality (t (AnnTypeRep t)) => TypeEquality (AnnTypeRep t) where
   a ?= b = case (a, b) of
     (Base a, Base b) -> do
       Refl <- a ?= b
@@ -69,10 +69,10 @@ instance TypeEquality (t (Type t)) => TypeEquality (Type t) where
 
     (_,          _)       -> Left "Type error"
 
-instance HasFunctions (Type t) where
+instance HasFunctions (AnnTypeRep t) where
   (-->) = (:->)
 
-instance IsType (Type t) where
+instance IsType (AnnTypeRep t) where
   toSType (a :-> b) = SFun (toSType a) (toSType b)
   toSType a         = SBase a
 
