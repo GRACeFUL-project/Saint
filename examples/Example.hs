@@ -6,7 +6,7 @@ module Example where
 
 import Saint
 
-ifE :: Bool -> Int -> Int -> Int 
+ifE :: Bool -> Int -> Int -> Int
 ifE b x y = if b then x else y
 
 type Univ0 = A0 Bool :+: A0 Int
@@ -20,11 +20,11 @@ lib = Library "If else"
 
 type Univ1 = A0 Bool :+: A0 Int :+: A1 []
 
-listFunctions :: Library Univ1 
+listFunctions :: Library Univ1
 listFunctions = Library "List functions"
   [ Item "range"   ((\a b -> [a .. b]) ::: int --> int --> list int)
   , Item "map"     (map                ::: (int --> int) --> list int --> list int)
-  , Item "reverse" (reverse            ::: list int --> list int) 
+  , Item "reverse" (reverse            ::: list int --> list int)
   , Item "suc"     ((+1)               ::: int --> int)
   ]
 

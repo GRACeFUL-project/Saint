@@ -1,13 +1,16 @@
-Done: Type t a :=  AnnTypeRep t a
-TODO: SomeType :=  SType
+DONE: Type t a :=  AnnTypeRep t a
+DONE: SomeType t :=  SType tr
+DONE: IsType := IsTypeRep
 
+Some type variables were renamed from "ty" to "tr" to match "type
+representation".
 
 -- Codes for types, based on another type of codes for base types
 --   implicitly forall-quantified
-data SType ty where
-  SBase :: ty a        -> SType ty
-  SVar  :: Int         -> SType ty
-  SFun  :: SType ty -> SType ty -> SType ty
+data SType tr where
+  SBase :: tr a        -> SType tr
+  SVar  :: Int         -> SType tr
+  SFun  :: SType tr -> SType tr -> SType tr
 
 data AnnTypeRep t a where
   Base   :: t (AnnTypeRep t) a -> AnnTypeRep t a
@@ -15,14 +18,14 @@ data AnnTypeRep t a where
   (:->)  :: AnnTypeRep t a -> AnnTypeRep t b -> AnnTypeRep t (a -> b)
 
 
-data Expr ty where
-  Var  :: String  -> Expr ty
-  ILit :: Int     -> Expr ty
-  App  :: Expr ty -> Expr ty -> Expr ty
-  Lam  :: String  -> ty a    -> Expr ty -> ty b -> Expr ty
+data Expr tr where
+  Var  :: String  -> Expr tr
+  ILit :: Int     -> Expr tr
+  App  :: Expr tr -> Expr tr -> Expr tr
+  Lam  :: String  -> tr a    -> Expr tr -> tr b -> Expr tr
 
 -- For efficiency, cashes the variables used in the type code
-data Scheme ty = Scheme [Int] (SType ty)
+data Scheme tr = Scheme [Int] (SType tr)
 
 data UntypedExpr where
   UVar  :: String -> UntypedExpr
@@ -31,11 +34,11 @@ data UntypedExpr where
   UApp  :: UntypedExpr -> UntypedExpr -> UntypedExpr
   deriving (Ord, Eq, Show)
 
-data STypedExpr ty where
-  SVar  :: String -> STypedExpr ty
-  SLam  :: String -> SType ty -> STypedExpr ty -> SType ty -> STypedExpr ty
-  SILit :: Int -> STypedExpr ty
-  SApp  :: STypedExpr ty -> STypedExpr ty -> STypedExpr ty
+data STypedExpr tr where
+  SVar  :: String -> STypedExpr tr
+  SLam  :: String -> SType tr -> STypedExpr tr -> SType tr -> STypedExpr tr
+  SILit :: Int -> STypedExpr tr
+  SApp  :: STypedExpr tr -> STypedExpr tr -> STypedExpr tr
 
 
 ----------------------------------------------------------------

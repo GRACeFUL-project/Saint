@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, FlexibleContexts #-}
 module Saint.Expressions where
 
 import Data.Maybe
@@ -27,24 +27,24 @@ data UntypedExpr where
   UApp  :: UntypedExpr -> UntypedExpr -> UntypedExpr
   deriving (Ord, Eq, Show)
 
-data STypedExpr ty where
-  SVar  :: String -> STypedExpr ty
-  SLam  :: String -> SType ty -> STypedExpr ty -> SType ty -> STypedExpr ty
-  SILit :: Int -> STypedExpr ty
-  SApp  :: STypedExpr ty -> STypedExpr ty -> STypedExpr ty
+data STypedExpr tr where
+  SVar  :: String -> STypedExpr tr
+  SLam  :: String -> SType tr -> STypedExpr tr -> SType tr -> STypedExpr tr
+  SILit :: Int -> STypedExpr tr
+  SApp  :: STypedExpr tr -> STypedExpr tr -> STypedExpr tr
 
-data Expr ty where
-  Var  :: String  -> Expr ty
-  Lam  :: String  -> ty a    -> Expr ty -> ty b -> Expr ty
-  ILit :: Int     -> Expr ty
-  App  :: Expr ty -> Expr ty -> Expr ty
+data Expr tr where
+  Var  :: String  -> Expr tr
+  Lam  :: String  -> tr a    -> Expr tr -> tr b -> Expr tr
+  ILit :: Int     -> Expr tr
+  App  :: Expr tr -> Expr tr -> Expr tr
 
-someTypedToTyped :: FullType ty => STypedExpr ty -> Either String (Expr ty)
+someTypedToTyped :: FullType tr => STypedExpr tr -> Either String (Expr tr)
 someTypedToTyped s = case s of
   SVar v -> return $ Var v
   SLam x t e t' -> do
-    SBase ty  <- normST t
-    SBase ty' <- normST t'
-    Lam x ty <$> (someTypedToTyped e) <*> return ty'
+    SBase tr  <- normST t
+    SBase tr' <- normST t'
+    Lam x tr <$> (someTypedToTyped e) <*> return tr'
   SILit i -> return $ ILit i
   SApp f x -> App <$> someTypedToTyped f <*> someTypedToTyped x

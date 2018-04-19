@@ -21,14 +21,16 @@ makeEnv :: Library t -> Env t
 makeEnv (Library _ []) = empty
 makeEnv (Library _ (Item s tv : ls)) = extend (makeEnv (Library "" ls)) s tv
 
-interpretIn :: FullType (AnnTypeRep t) => Library t -> UntypedExpr -> Either String (TypedValue t)
+interpretIn ::  FullType (AnnTypeRep t) =>
+                Library t -> UntypedExpr -> Either String (TypedValue t)
 interpretIn lib ue = do
   let (eith, _) = runTI $ typeInference (makeTypingEnv lib) ue
   ste <- eith
   e   <- someTypedToTyped (snd ste)
   interpret (makeEnv lib) e
 
-run :: FullType (AnnTypeRep t) => AnnTypeRep t a -> Library t -> String -> Either String a
+run ::  FullType (AnnTypeRep t) =>
+        AnnTypeRep t a -> Library t -> String -> Either String a
 run t lib s = do
   pexp <- parse s
   (result ::: t') <- interpretIn lib pexp

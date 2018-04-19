@@ -11,34 +11,35 @@ data a :~: b where
 instance Show (a :~: b) where
   show Refl = "Refl"
 
-class IsType ty where
-  toSType :: ty a -> SType ty
+class IsTypeRep tr where
+  toSType :: tr a -> SType tr
 
-class TypeEquality ty where
-  (?=) :: ty a -> ty b -> Either String (a :~: b)
+class TypeEquality tr where
+  (?=) :: tr a -> tr b -> Either String (a :~: b)
 
-class HasFunctions ty where
-  (-->) :: ty a -> ty b -> ty (a -> b)
+class HasFunctions tr where
+  (-->) :: tr a -> tr b -> tr (a -> b)
 
 infixr 1 -->
 
-class HasInts ty where
-  int :: ty Int
+class HasInts tr where
+  int :: tr Int
 
-type FullType ty = (IsType ty, TypeEquality ty, HasFunctions ty, HasInts ty)
+-- type FullType tr = (IsTypeRep tr, TypeEquality tr, HasFunctions tr, HasInts tr, Show (SType tr))
+type FullType tr = (IsTypeRep tr, TypeEquality tr, HasFunctions tr, HasInts tr)
 
-data SType ty where
-  SBase :: ty a  -> SType ty
-  STVar :: Int   -> SType ty
-  SFun  :: SType ty -> SType ty -> SType ty
+data SType tr where
+  SBase :: tr a  -> SType tr
+  STVar :: Int   -> SType tr
+  SFun  :: SType tr -> SType tr -> SType tr
 
-instance TypeEquality ty => Eq (SType ty) where
+instance TypeEquality tr => Eq (SType tr) where
   SBase t  == SBase t'  = isRight $ t ?= t'
   STVar v  == STVar v'  = v == v'
   SFun a b == SFun c d  = a == c && b == d
   _ == _ = False
 
-normST :: HasFunctions ty => SType ty -> Either String (SType ty)
+normST :: HasFunctions tr => SType tr -> Either String (SType tr)
 normST (SFun a b) = do
   SBase a' <- normST a
   SBase b' <- normST b
@@ -72,7 +73,7 @@ instance TypeEquality (t (AnnTypeRep t)) => TypeEquality (AnnTypeRep t) where
 instance HasFunctions (AnnTypeRep t) where
   (-->) = (:->)
 
-instance IsType (AnnTypeRep t) where
+instance IsTypeRep (AnnTypeRep t) where
   toSType (a :-> b) = SFun (toSType a) (toSType b)
   toSType a         = SBase a
 
