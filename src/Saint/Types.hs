@@ -1,4 +1,10 @@
-{-# LANGUAGE GADTs, TypeOperators, ConstraintKinds, UndecidableInstances, FlexibleContexts, KindSignatures #-}
+{-# LANGUAGE GADTs
+           , TypeOperators
+           , ConstraintKinds
+           , UndecidableInstances
+           , FlexibleContexts
+           , KindSignatures
+#-}
 module Saint.Types where
 
 import Data.Either
@@ -76,7 +82,7 @@ instance IsType (Type t) where
   toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
   toSomeType a         = SomeBase a
 
-instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
+instance (TypeEquality f, TypeEquality g) => TypeEquality (CoProduct f g) where
   InL f ?= InL f' = do
     Refl <- f ?= f'
     return Refl

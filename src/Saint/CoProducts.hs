@@ -6,8 +6,8 @@
 #-}
 module Saint.CoProducts where
 
-data CoProduct f g (t :: * -> *) a = InL (f t a)
-                                   | InR (g t a)
+data CoProduct f g a = InL (f a)
+                     | InR (g a)
 
 type family f :+: g where
   (CoProduct l r) :+: f = CoProduct l (r :+: f)
@@ -18,10 +18,10 @@ infixr :+:
 
 {- Need to be explicit about the kind signatures, otherwise GHC infers
  - f :: * -> * -> * -}
-class (f :: (* -> *) -> * -> *) :< (g :: (* -> *) -> * -> *) where
-  inject :: f t a -> g t a
+class f :< g where
+  inject :: f a -> g a
 
-  eject  :: g t a -> Maybe (f t a)
+  eject  :: g a -> Maybe (f a)
 
 instance f :< f where
   inject = id
