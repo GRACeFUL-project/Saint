@@ -12,7 +12,7 @@ instance Show (a :~: b) where
   show Refl = "Refl"
 
 class IsType ty where
-  toSomeType :: ty a -> SomeType ty
+  toSType :: ty a -> SType ty
 
 class TypeEquality ty where
   (?=) :: ty a -> ty b -> Either String (a :~: b)
@@ -27,23 +27,23 @@ class HasInts ty where
 
 type FullType ty = (IsType ty, TypeEquality ty, HasFunctions ty, HasInts ty)
 
-data SomeType ty where
-  SomeBase :: ty a        -> SomeType ty
-  SomeVar  :: Int         -> SomeType ty
-  SomeFun  :: SomeType ty -> SomeType ty -> SomeType ty
+data SType ty where
+  SBase :: ty a  -> SType ty
+  STVar :: Int   -> SType ty
+  SFun  :: SType ty -> SType ty -> SType ty
 
-instance TypeEquality ty => Eq (SomeType ty) where
-  SomeBase t  == SomeBase t' = isRight $ t ?= t'
-  SomeVar  v  == SomeVar  v' = v == v'
-  SomeFun a b == SomeFun c d = a == c && b == d
+instance TypeEquality ty => Eq (SType ty) where
+  SBase t  == SBase t'  = isRight $ t ?= t'
+  STVar v  == STVar v'  = v == v'
+  SFun a b == SFun c d  = a == c && b == d
   _ == _ = False
 
-normST :: HasFunctions ty => SomeType ty -> Either String (SomeType ty)
-normST (SomeFun a b) = do
-  SomeBase a' <- normST a
-  SomeBase b' <- normST b
-  return $ SomeBase (a' --> b')
-normST (SomeVar v) = Left "The impossible happened"
+normST :: HasFunctions ty => SType ty -> Either String (SType ty)
+normST (SFun a b) = do
+  SBase a' <- normST a
+  SBase b' <- normST b
+  return $ SBase (a' --> b')
+normST (STVar v) = Left "The impossible happened"
 normST t = return t
 
 data Type t a where
@@ -73,8 +73,8 @@ instance HasFunctions (Type t) where
   (-->) = (:->)
 
 instance IsType (Type t) where
-  toSomeType (a :-> b) = SomeFun (toSomeType a) (toSomeType b)
-  toSomeType a         = SomeBase a
+  toSType (a :-> b) = SFun (toSType a) (toSType b)
+  toSType a         = SBase a
 
 instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
   InL f ?= InL f' = do

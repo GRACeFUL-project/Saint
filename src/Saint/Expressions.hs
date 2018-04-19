@@ -27,11 +27,11 @@ data UntypedExpr where
   UApp  :: UntypedExpr -> UntypedExpr -> UntypedExpr
   deriving (Ord, Eq, Show)
 
-data SomeTypedExpr ty where
-  SVar  :: String -> SomeTypedExpr ty
-  SLam  :: String -> SomeType ty -> SomeTypedExpr ty -> SomeType ty -> SomeTypedExpr ty
-  SILit :: Int -> SomeTypedExpr ty
-  SApp  :: SomeTypedExpr ty -> SomeTypedExpr ty -> SomeTypedExpr ty
+data STypedExpr ty where
+  SVar  :: String -> STypedExpr ty
+  SLam  :: String -> SType ty -> STypedExpr ty -> SType ty -> STypedExpr ty
+  SILit :: Int -> STypedExpr ty
+  SApp  :: STypedExpr ty -> STypedExpr ty -> STypedExpr ty
 
 data Expr ty where
   Var  :: String  -> Expr ty
@@ -39,12 +39,12 @@ data Expr ty where
   ILit :: Int     -> Expr ty
   App  :: Expr ty -> Expr ty -> Expr ty
 
-someTypedToTyped :: FullType ty => SomeTypedExpr ty -> Either String (Expr ty)
+someTypedToTyped :: FullType ty => STypedExpr ty -> Either String (Expr ty)
 someTypedToTyped s = case s of
   SVar v -> return $ Var v
   SLam x t e t' -> do
-    SomeBase ty  <- normST t
-    SomeBase ty' <- normST t'
+    SBase ty  <- normST t
+    SBase ty' <- normST t'
     Lam x ty <$> (someTypedToTyped e) <*> return ty'
   SILit i -> return $ ILit i
   SApp f x -> App <$> someTypedToTyped f <*> someTypedToTyped x
