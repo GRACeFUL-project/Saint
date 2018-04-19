@@ -19,7 +19,7 @@ data A0 t a where
 instance TypeEquality (A0 t) where
   A0 ?= A0 = return Refl 
 
-instance A0 Int :< t (Type t) => HasInts (Type t) where
+instance A0 Int :< t (AnnTypeRep t) => HasInts (AnnTypeRep t) where
   int = Base (inject A0)
 
 data A1 f tu a where
@@ -30,14 +30,14 @@ instance TypeEquality tu => TypeEquality (A1 f tu) where
     Refl <- a ?= b
     return Refl
 
-bool :: A0 Bool :< t (Type t) => Type t Bool
+bool :: A0 Bool :< t (AnnTypeRep t) => AnnTypeRep t Bool
 bool = Base (inject A0)
 
-double :: A0 Double :< t (Type t) => Type t Double
+double :: A0 Double :< t (AnnTypeRep t) => AnnTypeRep t Double
 double = Base (inject A0)
 
-maybe :: A1 Maybe (Type t) :< t (Type t) => Type t a -> Type t (Maybe a)
+maybe :: A1 Maybe (AnnTypeRep t) :< t (AnnTypeRep t) => AnnTypeRep t a -> AnnTypeRep t (Maybe a)
 maybe = Base . inject . A1
 
-list :: A1 [] (Type t) :< t (Type t) => Type t a -> Type t [a]
+list :: A1 [] (AnnTypeRep t) :< t (AnnTypeRep t) => AnnTypeRep t a -> AnnTypeRep t [a]
 list = Base . inject . A1

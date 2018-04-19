@@ -1,5 +1,5 @@
 {- THIS CODE IS ADAPTED FROM THE IMPLEMENTATION HERE: https://raw.githubusercontent.com/mgrabmueller/AlgorithmW/master/AlgorithmW.lhs -}
-{-# LANGUAGE GADTs, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances #-}
+{-# LANGUAGE GADTs, MultiParamTypeClasses, FunctionalDependencies, FlexibleInstances, FlexibleContexts #-}
 module Saint.TypeChecker where
 
 import qualified Data.Map as Map
@@ -14,96 +14,97 @@ import Data.Maybe
 import Saint.Types
 import Saint.Expressions
 
-data Scheme ty = Scheme [Int] (SomeType ty)
+data Scheme tr = Scheme [Int] (SType tr)
 
-class Types ty a | a -> ty where
+class Types tr a | a -> tr where
     ftv   :: a -> Set.Set Int
-    apply :: Subst ty -> a -> a
+    apply :: Subst tr -> a -> a
 
-instance FullType ty => Types ty (SomeType ty) where
-    ftv (SomeVar n)     = Set.singleton n
-    ftv (SomeFun t1 t2) = ftv t1 `Set.union` ftv t2
-    ftv _               = Set.empty
+instance FullType tr => Types tr (SType tr) where
+    ftv (STVar n)     = Set.singleton n
+    ftv (SFun t1 t2)  = ftv t1 `Set.union` ftv t2
+    ftv _             = Set.empty
 
-    apply s (SomeVar n) = case Map.lookup n s of
-                            Nothing  -> SomeVar n
+    apply s (STVar n) = case Map.lookup n s of
+                            Nothing  -> STVar n
                             Just t   -> t
-    apply s (SomeFun t1 t2) = SomeFun (apply s t1) (apply s t2)
+    apply s (SFun t1 t2) = SFun (apply s t1) (apply s t2)
     apply s t               = t
 
-instance FullType ty => Types ty (Scheme ty) where
+instance FullType tr => Types tr (Scheme tr) where
     ftv (Scheme vars t)     = (ftv t) `Set.difference` (Set.fromList vars)
 
     apply s (Scheme vars t) = Scheme vars (apply (foldr Map.delete s vars) t)
 
-type Subst ty = Map.Map Int (SomeType ty)
+type Subst tr = Map.Map Int (SType tr)
 
-nullSubst :: FullType ty => Subst ty
+nullSubst :: FullType tr => Subst tr
 nullSubst = Map.empty
 
-composeSubst :: FullType ty => Subst ty -> Subst ty -> Subst ty
+composeSubst :: FullType tr => Subst tr -> Subst tr -> Subst tr
 composeSubst s1 s2 = (Map.map (apply s1) s2) `Map.union` s1
 
-newtype TypeEnv ty = TypeEnv (Map.Map String (Scheme ty))
+newtype TypeEnv tr = TypeEnv (Map.Map String (Scheme tr))
 
-remove :: FullType ty => TypeEnv ty -> String -> TypeEnv ty
+remove :: FullType tr => TypeEnv tr -> String -> TypeEnv tr
 remove (TypeEnv env) var = TypeEnv (Map.delete var env)
 
-instance FullType ty => Types ty (TypeEnv ty) where
+instance FullType tr => Types tr (TypeEnv tr) where
     ftv (TypeEnv env)     = foldr Set.union Set.empty (map ftv (Map.elems env))
     apply s (TypeEnv env) = TypeEnv (Map.map (apply s) env)
 
-generalize :: FullType ty => TypeEnv ty -> SomeType ty -> Scheme ty
+generalize :: FullType tr => TypeEnv tr -> SType tr -> Scheme tr
 generalize env t = Scheme vars t
   where vars = Set.toList ((ftv t) `Set.difference` (ftv env))
 
-data TIState ty = TIState { tiSupply :: Int,
-                            tiSubst :: Subst ty
+data TIState tr = TIState { tiSupply :: Int,
+                            tiSubst :: Subst tr
                           }
 
-type TI ty a = ExceptT String (State (TIState ty)) a
+type TI tr a = ExceptT String (State (TIState tr)) a
 
-runTI :: FullType ty => TI ty a -> (Either String a, TIState ty)
+runTI :: FullType tr => TI tr a -> (Either String a, TIState tr)
 runTI t = runState (runExceptT t) initTIState
   where initTIState = TIState{tiSupply = 0, tiSubst = Map.empty}
 
-newTyVar :: FullType ty => TI ty (SomeType ty)
+newTyVar :: FullType tr => TI tr (SType tr)
 newTyVar = do
   s <- get
   put s { tiSupply = tiSupply s + 1}
-  return (SomeVar $ tiSupply s)
+  return (STVar $ tiSupply s)
 
-instantiate :: FullType ty => Scheme ty -> TI ty (SomeType ty)
+instantiate :: FullType tr => Scheme tr -> TI tr (SType tr)
 instantiate (Scheme vars t) = do nvars <- mapM (\ _ -> newTyVar) vars
                                  let s = Map.fromList (zip vars nvars)
                                  return $ apply s t
 
-mgu :: FullType ty => SomeType ty -> SomeType ty -> TI ty (Subst ty)
-mgu (SomeFun l r) (SomeFun l' r') = do
+mgu :: FullType tr => SType tr -> SType tr -> TI tr (Subst tr)
+mgu (SFun l r) (SFun l' r') = do
   s1 <- mgu l l'
   s2 <- mgu (apply s1 r) (apply s1 r')
   return (s1 `composeSubst` s2)
-mgu (SomeVar u) t = varBind u t
-mgu t (SomeVar u) = varBind u t
+mgu (STVar u) t = varBind u t
+mgu t (STVar u) = varBind u t
 mgu t1 t2
   | t1 == t2  = return Map.empty
-  | otherwise = throwError $ "types do not unify"
+  | otherwise = throwError $ "types do not unify: " -- ++ show t1 ++ "/~" ++ show t2
 
-varBind :: FullType ty => Int -> SomeType ty -> TI ty (Subst ty)
-varBind u t | t == SomeVar u        = return nullSubst
+varBind :: FullType tr => Int -> SType tr -> TI tr (Subst tr)
+varBind u t | t == STVar u          = return nullSubst
             | u `Set.member` ftv t  = throwError $ "occurs check fails"
             | otherwise             = return (Map.singleton u t)
 
-applyExp :: FullType ty => Subst ty -> SomeTypedExpr ty -> SomeTypedExpr ty
+applyExp :: FullType tr => Subst tr -> STypedExpr tr -> STypedExpr tr
 applyExp s e = case e of
   SVar v -> SVar v
   SLam x t e t' -> SLam x (apply s t) (applyExp s e) (apply s t')
   SILit i -> SILit i
   SApp f x -> SApp (applyExp s f) (applyExp s x)
-  
 
-ti :: FullType ty => TypeEnv ty -> UntypedExpr -> TI ty (Subst ty, SomeType ty, SomeTypedExpr ty)
-ti (TypeEnv env) (UVar n) = 
+
+ti ::  FullType tr =>
+       TypeEnv tr -> UntypedExpr -> TI tr (Subst tr, SType tr, STypedExpr tr)
+ti (TypeEnv env) (UVar n) =
     case Map.lookup n env of
        Nothing     -> throwError $ "unbound variable: " ++ n
        Just sigma  -> do t <- instantiate sigma
@@ -114,18 +115,19 @@ ti env (ULam n e) =
         let TypeEnv env' = remove env n
             env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
         (s1, t1, e') <- ti env'' e
-        return (s1, SomeFun (apply s1 tv) t1, applyExp s1 (SLam n (apply s1 tv) e' t1))
+        return (s1, SFun (apply s1 tv) t1, applyExp s1 (SLam n (apply s1 tv) e' t1))
 
-ti env (UILit i) = return (nullSubst, toSomeType int, SILit i)
+ti env (UILit i) = return (nullSubst, toSType int, SILit i)
 
 ti env (UApp e1 e2) =
     do  tv <- newTyVar
         (s1, t1, e1') <- ti env e1
         (s2, t2, e2') <- ti (apply s1 env) e2
-        s3 <- mgu (apply s2 t1) (SomeFun t2 tv)
+        s3 <- mgu (apply s2 t1) (SFun t2 tv)
         return (s3 `composeSubst` s2 `composeSubst` s1, apply s3 tv, applyExp s3 (SApp e1' e2'))
 
-typeInference :: FullType ty => Map.Map String (Scheme ty) -> UntypedExpr -> TI ty (SomeType ty, SomeTypedExpr ty)
+typeInference ::  FullType tr =>
+                  Map.Map String (Scheme tr) -> UntypedExpr -> TI tr (SType tr, STypedExpr tr)
 typeInference env e =
     do (s, t, e) <- ti (TypeEnv env) e
        return (apply s t, applyExp s e)
