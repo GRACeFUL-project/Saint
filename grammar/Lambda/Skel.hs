@@ -19,4 +19,5 @@ transExpr x = case x of
   EApp expr1 expr2 -> failure x
   EVar ident -> failure x
   EILit integer -> failure x
+  EDLit double -> failure x
 

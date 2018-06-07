@@ -90,5 +90,6 @@ instance Print Expr where
     EApp expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, prt 2 expr2])
     EVar id -> prPrec i 2 (concatD [prt 0 id])
     EILit n -> prPrec i 2 (concatD [prt 0 n])
+    EDLit d -> prPrec i 2 (concatD [prt 0 d])
 
 

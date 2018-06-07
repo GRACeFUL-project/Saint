@@ -3,4 +3,6 @@ ELet.  Expr  ::= "let" Ident "=" Expr "in" Expr;
 EApp.  Expr1 ::= Expr1 Expr2;
 EVar.  Expr2 ::= Ident;
 EILit. Expr2 ::= Integer;
+EDLit. Expr2 ::= Double;
 coercions Expr 2;
+comment "--";

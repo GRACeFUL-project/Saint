@@ -14,5 +14,6 @@ data Expr
     | EApp Expr Expr
     | EVar Ident
     | EILit Integer
+    | EDLit Double
   deriving (Eq, Ord, Show, Read)
 
