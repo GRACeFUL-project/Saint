@@ -83,7 +83,7 @@ instance IsTypeRep (AnnTypeRep t) where
   toSType (a :-> b) = SFun (toSType a) (toSType b)
   toSType a         = SBase a
 
-instance (TypeEquality f, TypeEquality g) => TypeEquality (CoProduct f g) where
+instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
   InL f ?= InL f' = do
     Refl <- f ?= f'
     return Refl
