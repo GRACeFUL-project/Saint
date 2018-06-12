@@ -10,6 +10,9 @@ data TypedValue t where
 
 infixr 0 :::
 
+instance Untag (TypedValue t) where
+  untag (v ::: tr) = v ::: untag tr
+
 unpackAs :: TypeEquality (AnnTypeRep t) => AnnTypeRep t a -> TypedValue t -> Either String a
 unpackAs t' (a ::: t) = do
   Refl <- t ?= t'

@@ -60,14 +60,23 @@ data AnnTypeRep t a where
 
 infixr 9 :->
 
+class Untag a where
+  untag :: a -> a
+
+instance Untag (AnnTypeRep t a) where
+  untag tr = case tr of
+    Base _    -> tr
+    Tag _ tr' -> untag tr'
+    a :-> b   -> untag a :-> untag b
+
 instance TypeEquality (t (AnnTypeRep t)) => TypeEquality (AnnTypeRep t) where
   a ?= b = case (a, b) of
     (Base a, Base b) -> do
       Refl <- a ?= b
       return Refl
 
-    (Tag s a, _) -> a ?= b
-    (_, Tag s b) -> a ?= b
+    (Tag _ a, _) -> a ?= b
+    (_, Tag _ b) -> a ?= b
 
     (a :-> b, x :-> y) -> do
       Refl <- a ?= x

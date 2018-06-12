@@ -19,7 +19,7 @@ makeTypingEnv (Library _ (Item s (_ ::: t) : ls)) = M.insert s (Scheme [] $ toST
 
 makeEnv :: Library t -> Env t
 makeEnv (Library _ []) = empty
-makeEnv (Library _ (Item s tv : ls)) = extend (makeEnv (Library "" ls)) s tv
+makeEnv (Library _ (Item s tv : ls)) = extend (makeEnv (Library "" ls)) s (untag tv)
 
 interpretIn ::  FullType (AnnTypeRep t) =>
                 Library t -> UntypedExpr -> Either String (TypedValue t)
