@@ -81,6 +81,7 @@ instance HasFunctions (AnnTypeRep t) where
 
 instance IsTypeRep (AnnTypeRep t) where
   toSType (a :-> b) = SFun (toSType a) (toSType b)
+  toSType (Tag _ a) = SBase a
   toSType a         = SBase a
 
 instance (TypeEquality (f t), TypeEquality (g t)) => TypeEquality (CoProduct f g t) where
