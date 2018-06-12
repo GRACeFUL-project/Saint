@@ -87,7 +87,7 @@ mgu (STVar u) t = varBind u t
 mgu t (STVar u) = varBind u t
 mgu t1 t2
   | t1 == t2  = return Map.empty
-  | otherwise = throwError $ "types do not unify: " -- ++ show t1 ++ "/~" ++ show t2
+  | otherwise = throwError $ "types do not unify." -- ++ show t1 ++ "/~" ++ show t2
 
 varBind :: FullType tr => Int -> SType tr -> TI tr (Subst tr)
 varBind u t | t == STVar u          = return nullSubst
